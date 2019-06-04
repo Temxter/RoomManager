@@ -30,6 +30,9 @@ public class Controller {
     static DynamicChangesArgs dynamicChangesArgsForm;
     static CreateRoom createRoomForm;
     static Hierarchy hierarchyForm;
+    static ChooseChangeOrDeleteDepartmentOrRoom chooseChangeOrDeleteDepartmentOrRoomForm;
+
+    static Messages Messages = new Messages();
 
     public void showUsersTest(){
         System.out.println(String.format("%4s|%2s|%15s|%15s", "ID", "Level access", "Name", "Password"));
@@ -341,21 +344,67 @@ public class Controller {
         });
     }
 
-    private static void openCreateDepartmentForm(){
+
+    private static void openChooseChangeOrDeleteDepartment()
+    {
+        if (chooseChangeOrDeleteDepartmentOrRoomForm == null) {
+            chooseChangeOrDeleteDepartmentOrRoomForm = new ChooseChangeOrDeleteDepartmentOrRoom();
+        }
+        chooseChangeOrDeleteDepartmentOrRoomForm.setVisible(true);
+        for (Department d: departments)
+            chooseChangeOrDeleteDepartmentOrRoomForm.setComboBoxItem(d.getName());
+        chooseChangeOrDeleteDepartmentOrRoomForm.buttonChangeAction(e -> {
+            String nameDepartment = chooseChangeOrDeleteDepartmentOrRoomForm.getSelectedItemComboBox();
+            Department oldDepartment = null;
+            for (Department d: departments){
+                if (d.getName().compareTo(nameDepartment) == 0)
+                    oldDepartment = d;
+            }
+            addOrEditDepartment(oldDepartment);
+        });
+        chooseChangeOrDeleteDepartmentOrRoomForm.buttonCreateAction(e -> {
+            addOrEditDepartment(null);
+        });
+        chooseChangeOrDeleteDepartmentOrRoomForm.buttonDeleteAction(e ->{
+            //TODO
+        });
+        //TODO add to menu
+    }
+
+    private static void openChooseChangeOrDeleteRoom()
+    {
+        ChooseChangeOrDeleteDepartmentOrRoom form = chooseChangeOrDeleteDepartmentOrRoomForm;
+        if (form == null) {
+            form = new ChooseChangeOrDeleteDepartmentOrRoom();
+        }
+        form.setVisible(true);
+        for (Room r: rooms)
+            form.setComboBoxItem(r.getTypeOfRoom());
+        //TODO
+
+    }
+
+    private static void openCreateDepartmentForm(Department oldDep){
         if (createDepartmentForm == null) {
             createDepartmentForm = new CreateDepartment();
             createDepartmentForm.setVisible(true);
+            createDepartmentForm.buttonBackAction(e -> {
+                createDepartmentForm.dispose();
+            });
         }
-        createDepartmentForm.buttonBackAction(e -> {
-            createDepartmentForm.dispose();
-        });
         createDepartmentForm.buttonCreateAction(e -> {
-            String name = createDepartmentForm.textFieldGetName();
-            String fullName = createDepartmentForm.textFieldGetFullName();
-            String genetiveName = createDepartmentForm.textFieldGetGenetiveName();
-            String instrumentalName = createDepartmentForm.textFieldGetInstrumentalName();
-            Department newDepartment = new Department(-1, name, fullName, genetiveName, instrumentalName);
-            addOrEditDepartment(newDepartment);
+            if (oldDep != null)
+            {
+                createDepartmentForm.textFieldsSetDepartment(oldDep);
+
+            }
+            if(createDepartmentForm.allTextFieldsAreFilled() == true) {
+                Department newDepartment = createDepartmentForm.textFieldsGetDepartmentWithoutID();
+                addOrEditDepartment(newDepartment);
+                String title = String.format("Отдел %s создан!", newDepartment.getName());
+                Messages.infoMessage(createDocForm.getParent(), "Успешно!", title);
+                createDepartmentForm.dispose();
+            }
         });
     }
 
